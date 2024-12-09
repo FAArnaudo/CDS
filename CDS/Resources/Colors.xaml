@@ -1,0 +1,25 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--#region COLORS STYLES-->
+    <SolidColorBrush x:Key="royal_blue" Color="#007ED6"></SolidColorBrush>
+    <SolidColorBrush x:Key="top_margin" Color="#FF3C7FB1"></SolidColorBrush>
+    <SolidColorBrush x:Key="midnight_blue" Color="#1B1448"></SolidColorBrush>
+    <SolidColorBrush x:Key="cornflower_blue" Color="#6495ED"></SolidColorBrush>
+    <SolidColorBrush x:Key="mint_green" Color="#98FF98"></SolidColorBrush>
+    <SolidColorBrush x:Key="light_gray_blue" Color="#D6E2E8"></SolidColorBrush>
+    <SolidColorBrush x:Key="light_pink" Color="#FFB6C1"></SolidColorBrush>
+    <SolidColorBrush x:Key="light_coral" Color="#F08080"></SolidColorBrush>
+    <SolidColorBrush x:Key="light_steel_blue" Color="#B0C4DE"></SolidColorBrush>
+    <SolidColorBrush x:Key="light_sea_green" Color="#20B2AA"></SolidColorBrush>
+    <SolidColorBrush x:Key="powder_blue" Color="#B0E0E6"></SolidColorBrush>
+    <SolidColorBrush x:Key="thistle" Color="#D8BFD8"></SolidColorBrush>
+    <SolidColorBrush x:Key="medium_violet_red" Color="#C71585"></SolidColorBrush>
+    <SolidColorBrush x:Key="plum" Color="#DDA0DD"></SolidColorBrush>
+    <SolidColorBrush x:Key="slate_blue" Color="#6A5ACD"></SolidColorBrush>
+    <SolidColorBrush x:Key="orchid" Color="#DA70D6"></SolidColorBrush>
+    <SolidColorBrush x:Key="dark_magenta" Color="#8B008B"></SolidColorBrush>
+    <SolidColorBrush x:Key="dark_red" Color="#A50000"></SolidColorBrush>
+    <SolidColorBrush x:Key="dark_green" Color="#013220"></SolidColorBrush>
+    <SolidColorBrush x:Key="dark_blue" Color="#00008B"></SolidColorBrush>
+    <!--#endregion-->
+</ResourceDictionary>
