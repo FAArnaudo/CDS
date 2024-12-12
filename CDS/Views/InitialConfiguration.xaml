@@ -5,8 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CDS.Views"
         mc:Ignorable="d"
+        Icon="/Images/LogoSurtidor.ico"
         Title="Configuración CDS"
         Height="459" Width="421"
+        WindowStyle="SingleBorderWindow"
         WindowStartupLocation="CenterScreen" Background="Transparent"
         ResizeMode="NoResize" PreviewKeyDown="Window_PreviewKeyDown">
     <Grid Background="#D6E2E8">
