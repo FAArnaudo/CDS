@@ -23,6 +23,25 @@ namespace CDS
         public ControlPanel()
         {
             InitializeComponent();
+            Loaded += ControlPanel_Loaded;
+        }
+
+        private void ControlPanel_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (!Configuration.ExistConfiguracion())
+            {
+                OpenConfigurationWindows();
+            }
+        }
+
+        private void OpenConfigurationWindows()
+        {
+            Views.InitialConfiguration initialConfiguration = new Views.InitialConfiguration
+            {
+                Owner = this
+            };
+            initialConfiguration.Show();
+            Hide();
         }
     }
 }
