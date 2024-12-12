@@ -36,4 +36,5 @@ jobs:
         msbuild.exe CDS.sln /p:platform="Any CPU" /p:configuration="Release"
         
     - name: Run Tests
-      run: vstest.console.exe .\tests\CDS.Tests\bin\Release\CDS.Tests.dll
+      run: vstest.console.exe .\Tests\ConfigurationTests
+      
