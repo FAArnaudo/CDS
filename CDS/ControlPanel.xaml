@@ -108,6 +108,13 @@
             </Grid>
             <!--#endregion-->
             <!--#region BOTTOM GRID-->
+            <DockPanel Grid.Row="6" Grid.Column="1" x:Name="DockPanelBot"
+                       Height="60" Width="400"
+                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                
+            </DockPanel>
+            <!--#region LABEL-->
+            <!--#endregion-->
             <!--#endregion-->
         </Grid>
     </Border>

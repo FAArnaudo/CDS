@@ -25,6 +25,9 @@ namespace CDS
         private NotifyIcon notifyIcon;
         private StackPanel stackPanel;
         private Label label;
+
+        public Label Label { get; private set; }
+
         public ControlPanel()
         {
             InitializeComponent();
@@ -36,6 +39,9 @@ namespace CDS
             Icon = new BitmapImage(new Uri("pack://application:,,,/CDS;component/Images/LogoSurtidor.ico"));
             stackPanel = new StackPanel();
             label = new Label();
+
+            CreateCustomLabel("Iniciando...", "#20B2AA");
+
             SetupNotifyIcon();
 
             if (!Configuration.ExistConfiguracion())
@@ -204,7 +210,7 @@ namespace CDS
             base.OnClosed(e);
         }
         #endregion
-        #region EXPANDERS
+        #region ELEMENTS CREATED POO
         private void ConfigureExpander(string flagStation, string controller)
         {
             // Primero, limpiamos cualquier contenido previo en el StackPanel
@@ -305,6 +311,33 @@ namespace CDS
             expander.Content = stackPanel;
 
             _ = SPExpander.Children.Add(expander);
+        }
+
+        private void CreateCustomLabel(string content, string colorHex)
+        {
+            DockPanelBot.Children.Clear();
+
+            // Inicializa el Label
+            Label = new Label
+            {
+                // Establece el contenido del Label
+                Content = content,
+                Height = 50,
+                Width = 170,
+
+                // Cambia el color de fondo usando el valor hexadecimal recibido
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorHex)),
+
+                // También puedes personalizar otras propiedades, como el tamaño, el margen, etc.
+                FontSize = 16,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalContentAlignment = System.Windows.HorizontalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Padding = new Thickness(10),
+                Foreground = Brushes.White
+            };
+            _ = DockPanelBot.Children.Add(Label);
         }
         #endregion
     }
