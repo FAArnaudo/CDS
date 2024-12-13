@@ -23,6 +23,7 @@ namespace CDS
                 return instance;
             }
         }
+
         public LogType GetLogLevel()
         {
             return logLevel;
@@ -46,6 +47,7 @@ namespace CDS
                     break;
             }
         }
+
         public void WriteLog(string message, LogType type)
         {
             try
@@ -106,6 +108,7 @@ namespace CDS
             }
         }
     }
+
     public enum LogType
     {
         t_debug = 0,
