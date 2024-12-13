@@ -68,11 +68,11 @@
                                 Style="{DynamicResource ButtonStyle}" Click="BtnVerDespachos_Click">
                             <TextBlock Text="Ver Despachos" Foreground="White" FontSize="15"></TextBlock>
                         </Button>
-                        <Button Name="BtnVerConfigEstacion"
+                        <Button Name="BtnVerSurtidores"
                                 Width="160" Height="35"
                                 HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8,0,0"
                                 Background="#013220" BorderBrush="#007ED6"
-                                Style="{DynamicResource ButtonStyle}" Click="BtnVerConfigEstacion_Click">
+                                Style="{DynamicResource ButtonStyle}" Click="BtnVerSurtidores_Click">
                             <TextBlock Text="Ver Surtidores" Foreground="White" FontSize="15"></TextBlock>
                         </Button>
                         <Button Name="BtnVerTanques"

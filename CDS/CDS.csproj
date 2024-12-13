@@ -59,8 +59,26 @@
     </ApplicationDefinition>
     <Compile Include="Configuration.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="Views\CierresViews.xaml.cs">
+      <DependentUpon>CierresViews.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\CIOViews.xaml.cs">
+      <DependentUpon>CIOViews.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DespachosViews.xaml.cs">
+      <DependentUpon>DespachosViews.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\InitialConfiguration.xaml.cs">
       <DependentUpon>InitialConfiguration.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ProductosViews.xaml.cs">
+      <DependentUpon>ProductosViews.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SurtidoresViews.xaml.cs">
+      <DependentUpon>SurtidoresViews.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TanquesViews.xaml.cs">
+      <DependentUpon>TanquesViews.xaml</DependentUpon>
     </Compile>
     <Page Include="ControlPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -82,7 +100,31 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\CierresViews.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\CIOViews.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\DespachosViews.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\InitialConfiguration.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ProductosViews.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SurtidoresViews.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\TanquesViews.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

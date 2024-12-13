@@ -1,20 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Button = System.Windows.Controls.Button;
 using Color = System.Windows.Media.Color;
@@ -32,6 +23,8 @@ namespace CDS
     public partial class ControlPanel : Window
     {
         private NotifyIcon notifyIcon;
+        private StackPanel stackPanel;
+        private Label label;
         public ControlPanel()
         {
             InitializeComponent();
@@ -41,6 +34,8 @@ namespace CDS
         private void ControlPanel_Loaded(object sender, RoutedEventArgs e)
         {
             Icon = new BitmapImage(new Uri("pack://application:,,,/CDS;component/Images/LogoSurtidor.ico"));
+            stackPanel = new StackPanel();
+            label = new Label();
             SetupNotifyIcon();
 
             if (!Configuration.ExistConfiguracion())
@@ -76,7 +71,6 @@ namespace CDS
         }
 
         #region EVENTOS
-
         private void BtnCerrar_Click(object sender, RoutedEventArgs e)
         {
             // Mostrar un cuadro de diálogo de confirmación
@@ -114,27 +108,32 @@ namespace CDS
 
         private void BtnVerDespachos_Click(object sender, RoutedEventArgs e)
         {
-
+            Views.DespachosViews despachosViews = new Views.DespachosViews();
+            despachosViews.Show();
         }
 
-        private void BtnVerConfigEstacion_Click(object sender, RoutedEventArgs e)
+        private void BtnVerSurtidores_Click(object sender, RoutedEventArgs e)
         {
-
+            Views.SurtidoresViews surtidoresViews = new Views.SurtidoresViews();
+            surtidoresViews.Show();
         }
 
         private void BtnVerTanques_Click(object sender, RoutedEventArgs e)
         {
-
+            Views.TanquesViews tanquesViews = new Views.TanquesViews();
+            tanquesViews.Show();
         }
 
         private void BtnVerProductos_Click(object sender, RoutedEventArgs e)
         {
-
+            Views.ProductosViews productosViews = new Views.ProductosViews();
+            productosViews.Show();
         }
 
         private void BtnVerCierres_Click(object sender, RoutedEventArgs e)
         {
-
+            Views.CierresViews cierresViews = new Views.CierresViews();
+            cierresViews.Show();
         }
 
         private void BtnCierreAnterior_Click(object sender, RoutedEventArgs e)
@@ -147,6 +146,9 @@ namespace CDS
 
         private void BtnCIO_Click(object sender, RoutedEventArgs e)
         {
+            Views.CIOViews cIOViews = new Views.CIOViews();
+            cIOViews.Show();
+
             if (sender is Button clickedButton)
             {
                 _ = MessageBox.Show($"¡{clickedButton.Content} presionado!");
@@ -205,6 +207,10 @@ namespace CDS
         #region EXPANDERS
         private void ConfigureExpander(string flagStation, string controller)
         {
+            // Primero, limpiamos cualquier contenido previo en el StackPanel
+            SPExpander.Children.Clear();
+            stackPanel.Children.Clear();
+
             // Crear el Expander
             Expander expander = new Expander
             {
@@ -214,21 +220,15 @@ namespace CDS
                 BorderThickness = new Thickness(2)
             };
 
-            // Crear un StackPanel para apilar los controles
-            StackPanel stackPanel = new StackPanel { };
-
-            // Crear un Label
-            Label label = new Label
-            {
-                Content = flagStation,
-                Width = 176,
-                Height = 35,
-                HorizontalContentAlignment = System.Windows.HorizontalAlignment.Center,
-                VerticalContentAlignment = VerticalAlignment.Center,
-                FontSize = 20,
-                Foreground = Brushes.White,
-                Margin = new Thickness(2)
-            };
+            // Label
+            label.Content = flagStation;
+            label.Width = 176;
+            label.Height = 35;
+            label.HorizontalContentAlignment = System.Windows.HorizontalAlignment.Center;
+            label.VerticalContentAlignment = VerticalAlignment.Center;
+            label.FontSize = 20;
+            label.Foreground = Brushes.White;
+            label.Margin = new Thickness(2);
 
             if (flagStation.Equals("YPF"))
             {
