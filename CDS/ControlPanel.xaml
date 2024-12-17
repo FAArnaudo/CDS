@@ -9,7 +9,7 @@
         Icon="Images/LogoSurtidor.ico"
         Title="Controlador de Surtidores" Height="350" Width="400"
         ResizeMode="CanMinimize" MouseDown="Window_MouseDown">
-    <Border Background="#D6E2E8">
+    <Border Background="{StaticResource light_gray_blue}">
         <Grid x:Name="GridStatus">
             <!--#region ROWS-->
             <Grid.RowDefinitions>
@@ -57,42 +57,42 @@
                         <Button Name="BtnCambiarConfig"
                                 Width="160" Height="35"
                                 HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8,0,0"
-                                Background="#013220" BorderBrush="#007ED6"
+                                Background="{StaticResource dark_green}" BorderBrush="{StaticResource royal_blue}"
                                 Style="{DynamicResource ButtonStyle}" Click="BtnCambiarConfig_Click">
                             <TextBlock Text="Cambiar Configuración" Foreground="White" FontSize="15"></TextBlock>
                         </Button>
                         <Button Name="BtnVerDespachos"
                                 Width="160" Height="35"
                                 HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8,0,0"
-                                Background="#013220" BorderBrush="#007ED6"
+                                Background="{StaticResource dark_green}" BorderBrush="{StaticResource royal_blue}"
                                 Style="{DynamicResource ButtonStyle}" Click="BtnVerDespachos_Click">
                             <TextBlock Text="Ver Despachos" Foreground="White" FontSize="15"></TextBlock>
                         </Button>
                         <Button Name="BtnVerSurtidores"
                                 Width="160" Height="35"
                                 HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8,0,0"
-                                Background="#013220" BorderBrush="#007ED6"
+                                Background="{StaticResource dark_green}" BorderBrush="{StaticResource royal_blue}"
                                 Style="{DynamicResource ButtonStyle}" Click="BtnVerSurtidores_Click">
                             <TextBlock Text="Ver Surtidores" Foreground="White" FontSize="15"></TextBlock>
                         </Button>
                         <Button Name="BtnVerTanques"
                                 Width="160" Height="35"
                                 HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8,0,0"
-                                Background="#013220" BorderBrush="#007ED6"
+                                Background="{StaticResource dark_green}" BorderBrush="{StaticResource royal_blue}"
                                 Style="{DynamicResource ButtonStyle}" Click="BtnVerTanques_Click">
                             <TextBlock Text="Ver Tanques" Foreground="White" FontSize="15"></TextBlock>
                         </Button>
                         <Button Name="BtnVerProductos"
                                 Width="160" Height="35"
                                 HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8,0,0"
-                                Background="#013220" BorderBrush="#007ED6"
+                                Background="{StaticResource dark_green}" BorderBrush="{StaticResource royal_blue}"
                                 Style="{DynamicResource ButtonStyle}" Click="BtnVerProductos_Click">
                             <TextBlock Text="Ver Productos" Foreground="White" FontSize="15"></TextBlock>
                         </Button>
                         <Button Name="BtnVerCierres"
                                 Width="160" Height="35"
                                 HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,8,0,0"
-                                Background="#013220" BorderBrush="#007ED6"
+                                Background="{StaticResource dark_green}" BorderBrush="{StaticResource royal_blue}"
                                 Style="{DynamicResource ButtonStyle}" Click="BtnVerCierres_Click">
                             <TextBlock Text="Ver Cierres" Foreground="White" FontSize="15"></TextBlock>
                         </Button>
@@ -108,13 +108,14 @@
             </Grid>
             <!--#endregion-->
             <!--#region BOTTOM GRID-->
-            <DockPanel Grid.Row="6" Grid.Column="1" x:Name="DockPanelBot"
-                       Height="60" Width="400"
-                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                
+            <DockPanel Grid.Row="6"
+                       Height="60" Width="200"
+                       HorizontalAlignment="Left" VerticalAlignment="Center">
             </DockPanel>
-            <!--#region LABEL-->
-            <!--#endregion-->
+            <DockPanel Grid.Row="6" x:Name="DockPanelBot"
+                       Height="60" Width="200"
+                       HorizontalAlignment="Right" VerticalAlignment="Center">
+            </DockPanel>
             <!--#endregion-->
         </Grid>
     </Border>

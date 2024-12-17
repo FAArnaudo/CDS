@@ -87,14 +87,14 @@ namespace CDS
             try
             {
                 // Abrir la conexión
-                OpenConnection();
+                _ = OpenConnection();
 
-                using (var cmd = new SQLiteCommand(query, connection))
+                using (SQLiteCommand cmd = new SQLiteCommand(query, connection))
                 {
                     using (SQLiteDataAdapter dataAdapter = new SQLiteDataAdapter(cmd))
                     {
                         DataTable dataTable = new DataTable();
-                        dataAdapter.Fill(dataTable); // Llenar el DataTable con los resultados
+                        _ = dataAdapter.Fill(dataTable); // Llenar el DataTable con los resultados
                         return dataTable;
                     }
                 }
@@ -121,9 +121,9 @@ namespace CDS
             try
             {
                 // Abrir la conexión
-                OpenConnection();
+                _ = OpenConnection();
 
-                using (var cmd = new SQLiteCommand(query, connection))
+                using (SQLiteCommand cmd = new SQLiteCommand(query, connection))
                 {
                     int rowsAffected = cmd.ExecuteNonQuery(); // Ejecuta el comando y devuelve el número de filas afectadas
                     return rowsAffected;
@@ -150,20 +150,140 @@ namespace CDS
         {
             try
             {
-                // Abrir la conexión
-                OpenConnection();
-
-                using (var cmd = new SQLiteCommand(query, connection))
+                _ = OpenConnection();
+                using (SQLiteCommand cmd = new SQLiteCommand(query, connection))
                 {
-                    // Ejecutamos la consulta y verificamos el estado
-                    int result = Convert.ToInt32(cmd.ExecuteScalar()); // Ejecuta una consulta que retorna un solo valor
-                    return result == 1; // Si el resultado es 1, retornamos true, de lo contrario, false
+                    int result = Convert.ToInt32(cmd.ExecuteScalar());
+                    return result == 1;
                 }
             }
             catch (Exception ex)
             {
-                Log.Instance.WriteLog($"Error al ejecutar INSERT o consulta con estado: {ex.Message}", LogType.t_error);
+                Log.Instance.WriteLog($"Error al ejecutar una consulta de estados: {ex.Message}", LogType.t_error);
                 return false;
+            }
+            finally
+            {
+                // Cerrar la conexión al final de la operación
+                CloseConnection();
+            }
+        }
+
+        /// <summary>
+        /// Crea todas las tablas necesarias para que el sistema pueda almacenar la informacón
+        /// </summary>
+        public void CreateTables()
+        {
+            try
+            {
+                _ = OpenConnection();
+                string createTableQuery = "CREATE TABLE IF NOT EXISTS Surtidores " +
+                                          "(IdSurtidor INTEGER, Manguera  INTEGER, Producto  INTEGER, " +
+                                          "Precio REAL, DescProd TEXT)";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(createTableQuery, connection))
+                {
+                    _ = cmd.ExecuteNonQuery();
+                }
+
+                createTableQuery = "CREATE TABLE IF NOT EXISTS Tanques (id INTEGER PRIMARY KEY, " +
+                                   "volumen REAL NOT NULL, total REAL NOT NULL)";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(createTableQuery, connection))
+                {
+                    _ = cmd.ExecuteNonQuery();
+                }
+
+                createTableQuery = "CREATE TABLE IF NOT EXISTS Despachos " +
+                                   "(id INTEGER NOT NULL, surtidor INTEGER NOT NULL, " +
+                                   "manguera INTEGER, producto TEXT NOT NULL, " +
+                                   "PPU REAL NOT NULL, volumen REAL NOT NULL, " +
+                                   "monto REAL NOT NULL, descripcion TEXT, " +
+                                   "despacho_pedido BLOB, fecha TEXT DEFAULT(datetime('now', 'localtime')), " +
+                                   "AUC TEXT DEFAULT '0', DCA REAL, DCP TEXT, " +
+                                   "DPN TEXT, TXTD TEXT, cod_auto TEXT, glosa_auto TEXT, " +
+                                   "valor_auto REAL, PRIMARY KEY(id,surtidor))";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(createTableQuery, connection))
+                {
+                    _ = cmd.ExecuteNonQuery();
+                }
+
+                createTableQuery = "CREATE TABLE IF NOT EXISTS cierreBandera " +
+                                   "(hacerCierre INTEGER NOT NULL);" +
+                                   "\nINSERT INTO cierreBandera (hacerCierre) " +
+                                   "SELECT 0 WHERE NOT EXISTS (SELECT 1 FROM cierreBandera)";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(createTableQuery, connection))
+                {
+                    _ = cmd.ExecuteNonQuery();
+                }
+
+                createTableQuery = "CREATE TABLE IF NOT EXISTS Cierres " +
+                                   "(id INTEGER, id_cierre INTEGER, fecha TEXT DEFAULT(datetime('now', 'localtime')), " +
+                                   "monto_contado TEXT, volumen_contado TEXT, " +
+                                   "monto_YPFruta TEXT, volumen_YPFruta TEXT, state TEXT, PRIMARY KEY(id AUTOINCREMENT))";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(createTableQuery, connection))
+                {
+                    _ = cmd.ExecuteNonQuery();
+                }
+
+                createTableQuery = "CREATE TABLE IF NOT EXISTS CierresPorManguera " +
+                                   "(id INTEGER NOT NULL, surtidor INTEGER NOT NULL, " +
+                                   "manguera INTEGER NOT NULL, monto REAL, " +
+                                   "volumen REAL, monto_acumulado REAL, volumen_acumulado REAL)";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(createTableQuery, connection))
+                {
+                    _ = cmd.ExecuteNonQuery();
+                }
+
+                createTableQuery = "CREATE TABLE IF NOT EXISTS CierresPorProducto " +
+                                   "(id INTEGER NOT NULL, producto INTEGER NOT NULL, " +
+                                   "monto REAL NOT NULL, volumen REAL NOT NULL)";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(createTableQuery, connection))
+                {
+                    _ = cmd.ExecuteNonQuery();
+                }
+
+                createTableQuery = "CREATE TABLE IF NOT EXISTS Productos " +
+                                   "(id_producto INTEGER PRIMARY KEY, numero_producto INTEGER NOT NULL, numero_despacho INTEGER NOT NULL," +
+                                   "producto TEXT NOT NULL, precio REAL NOT NULL)";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(createTableQuery, connection))
+                {
+                    _ = cmd.ExecuteNonQuery();
+                }
+
+                createTableQuery = "CREATE TABLE IF NOT EXISTS CheckConexion " +
+                                  "(idConexion INTEGER PRIMARY KEY, isConnected INTEGER, fecha date DEFAULT(datetime('now', 'localtime')));" +
+                                  "\nINSERT INTO CheckConexion (idConexion, isConnected)" +
+                                  "\nSELECT 1, 0 " +
+                                  "\nWHERE NOT EXISTS (SELECT 1 FROM CheckConexion WHERE idConexion = 1)";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(createTableQuery, connection))
+                {
+                    _ = cmd.ExecuteNonQuery();
+                }
+
+                createTableQuery = "CREATE TABLE IF NOT EXISTS Datos_CIO " +
+                                   "(id_cio INTEGER PRIMARY KEY, ip_vox TEXT NOT NULL, ip_bridge TEXT NOT NULL, " +
+                                   "ip_server TEXT NOT NULL, ip_libre TEXT NOT NULL, " +
+                                   "ruteo_estatico TEXT, fecha date DEFAULT(datetime('now', 'localtime')));" +
+                                   "\nINSERT INTO Datos_CIO (id_cio, ip_vox, ip_bridge, ip_server, ip_libre, ruteo_estatico)" +
+                                   "\nSELECT 1, '', '', '', '', '' " +
+                                   "\nWHERE NOT EXISTS (SELECT 1 FROM Datos_CIO WHERE id_cio = 1);";
+
+                using (SQLiteCommand cmd = new SQLiteCommand(createTableQuery, connection))
+                {
+                    _ = cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Instance.WriteLog($"Error al crear tabla: {ex.Message}", LogType.t_error);
             }
             finally
             {

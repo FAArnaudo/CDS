@@ -34,6 +34,12 @@ namespace CDS
             Loaded += ControlPanel_Loaded;
         }
 
+        /// <summary>
+        /// Inicia los componentes dinamicos y consulta por la configuración. Si no existe inicia una nueva,
+        /// si ya equiste intenta iniciar la conexión con el controlador.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ControlPanel_Loaded(object sender, RoutedEventArgs e)
         {
             Icon = new BitmapImage(new Uri("pack://application:,,,/CDS;component/Images/LogoSurtidor.ico"));
@@ -54,17 +60,15 @@ namespace CDS
             }
         }
 
-        private void InitialConfiguration_Closed(object sender, EventArgs e)
-        {
-            Show();
-            Init();
-        }
-
         private void Init()
         {
             ConfigureExpander(Configuration.GetConfiguration().StationFlag, Configuration.GetConfiguration().Controller);
         }
 
+        /// <summary>
+        /// Inicia una nueva configuración. Al cerrarse la ventana de configuración, se vuelve a mostrar
+        /// la ventana del panel de control y llama a iniciar la conexión.
+        /// </summary>
         private void OpenConfigurationWindows()
         {
             Views.InitialConfiguration initialConfiguration = new Views.InitialConfiguration
@@ -74,6 +78,12 @@ namespace CDS
             initialConfiguration.Show();
             initialConfiguration.Closed += InitialConfiguration_Closed;
             Hide();
+        }
+
+        private void InitialConfiguration_Closed(object sender, EventArgs e)
+        {
+            Show();
+            Init();
         }
 
         #region EVENTOS
@@ -211,6 +221,12 @@ namespace CDS
         }
         #endregion
         #region ELEMENTS CREATED POO
+        /// <summary>
+        /// Crea y configura el expander dinamico que representa la bandera de la estación,
+        /// asociada al controlador configurado.
+        /// </summary>
+        /// <param name="flagStation"></param>
+        /// <param name="controller"></param>
         private void ConfigureExpander(string flagStation, string controller)
         {
             // Primero, limpiamos cualquier contenido previo en el StackPanel
@@ -313,7 +329,13 @@ namespace CDS
             _ = SPExpander.Children.Add(expander);
         }
 
-        private void CreateCustomLabel(string content, string colorHex)
+        /// <summary>
+        /// Se encarga de actualizar la leyenda del label con su color de fondo. Es util para saber el estado de la conexión entre
+        /// el sistema y el controlador.
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="colorHex"></param>
+        public void CreateCustomLabel(string content, string colorHex)
         {
             DockPanelBot.Children.Clear();
 
