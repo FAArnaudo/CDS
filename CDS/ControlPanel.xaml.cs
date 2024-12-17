@@ -63,6 +63,17 @@ namespace CDS
         private void Init()
         {
             ConfigureExpander(Configuration.GetConfiguration().StationFlag, Configuration.GetConfiguration().Controller);
+
+            if (PumpController.Instance.Init(Configuration.GetConfiguration(), this))
+            {
+                _ = MessageBox.Show("Datos cargados correctamente, verifique el estado del controlador.");
+            }
+            else
+            {
+                _ = MessageBox.Show("Error al cargar los parametros.\n" +
+                                    "Por favor, revise e intente nuevamente.");
+                Log.Instance.WriteLog("No fue posible iniciar", LogType.t_error);
+            }
         }
 
         /// <summary>
