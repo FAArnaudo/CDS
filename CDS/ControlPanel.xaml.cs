@@ -254,7 +254,9 @@ namespace CDS
 
             if (flagStation.Equals("YPF"))
             {
-                label.Background = Brushes.CornflowerBlue;
+                SolidColorBrush solidColorBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#007ED6"));
+
+                label.Background = solidColorBrush;
 
                 // Crear un TextBlock
                 TextBlock textBlock = new TextBlock
@@ -272,7 +274,7 @@ namespace CDS
                 {
                     Width = 110,
                     Height = 35,
-                    Background = Brushes.CornflowerBlue,
+                    Background = solidColorBrush,
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                     Style = (Style)Resources["Styles"],
@@ -297,7 +299,7 @@ namespace CDS
                     FontSize = 15,
                     Width = 110,
                     Height = 35,
-                    Background = Brushes.CornflowerBlue,
+                    Background = solidColorBrush,
                     HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center,
                     Style = (Style)Resources["Styles"],

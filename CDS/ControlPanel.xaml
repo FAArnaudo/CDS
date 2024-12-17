@@ -19,7 +19,7 @@
             </Grid.RowDefinitions>
             <!--#endregion-->
             <!--#region TOP GRID-->
-            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Background="#FF3C7FB1">
+            <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="4" Background="{StaticResource dark_green}">
                 <!--#region BUTTON-->
                 <Button Grid.Row="0" Grid.Column="2" Name="BtnCerrar"
                         Width="35" Height="30"
@@ -40,12 +40,12 @@
                 <TextBlock Text="Controlador de Surtidores"
                            Height="30" Width="250"
                            HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="35,0,0,0"
-                           FontSize="20"></TextBlock>
+                           FontSize="20" Foreground="White"></TextBlock>
                 <!--#endregion-->
                 <!--#region IMAGE-->
                 <Image Source="pack://application:,,,/Images/LogoSurtidor.ico"
                        Width="25" Height="25"
-                       HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,0,5"></Image>
+                       HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,2,0,3"></Image>
                 <!--#endregion-->
             </Grid>
             <!--#endregion-->
