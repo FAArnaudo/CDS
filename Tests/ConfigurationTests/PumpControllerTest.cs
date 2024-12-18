@@ -20,8 +20,11 @@ namespace ConfigurationTests
             Data data = new Data
             {
                 Controller = "CEM-44",
-                Timer = "8"
+                Timer = "8",
+                RutaProyNuevo = @"C:\Sistema\PROY_NUEVO"
             };
+
+            _ = Configuration.SaveConfiguration(data);
 
             ControlPanel controlPanel = new ControlPanel();
 
