@@ -43,14 +43,33 @@ namespace CDS
 
                 ControlPanel = controlPanel;
 
+                // Creamos la base de datos, si no existe
                 if (ConnectorSQLite.Instance.CreateDatabase())
                 {
+                    // Creamos las tablas si no existen
                     ConnectorSQLite.Instance.CreateTables();
                 }
 
-                if (ControllerType == null || !ControllerType.Equals(data.Controller))
+                // Si el controlador no fue asignado se inicia el proceso
+                if (ControllerType == null)
                 {
                     ControllerType = data.Controller;
+
+                    if (CheckController(ControllerType))
+                    {
+                        isInitOk = true;
+                    }
+                }
+                // Si el controlador fue asignado y se cambia por uno diferente, se inicia el proceso nuevo
+                else if (!ControllerType.Equals(data.Controller))
+                {
+                    ControllerType = data.Controller;
+
+                    cancellationTokenSource.Cancel();
+
+                    Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
+
+                    cancellationTokenSource = new CancellationTokenSource();
 
                     if (CheckController(ControllerType))
                     {
@@ -81,25 +100,86 @@ namespace CDS
             return isInitOk;
         }
 
+        /// <summary>
+        /// Metodo principal. Da inicio a la interacción con el controlador CEM-44.
+        /// </summary>
+        /// <param name="token"></param>
         private static void CemProcess(CancellationToken token)
         {
             Log.Instance.WriteLog($"Nuevo proceso principal iniciado: {mainProcess.Id} {mainProcess.Status}.\n", LogType.t_info);
 
-            Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
-            Instance.CheckConexion(1);
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    bool cierreDetectado = false;
+
+                    while (!cierreDetectado && !token.IsCancellationRequested)
+                    {
+                        lastActivityTime = DateTime.UtcNow;  // Indica actividad
+
+                        Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
+                        Instance.CheckConexion(1);
+
+                        cierreDetectado = ConnectorSQLite.Instance.ExecuteStateQuery($"SELECT hacerCierre FROM cierreBandera LIMIT 1");
+                    }
+
+                    if (cierreDetectado)
+                    {
+                        Log.Instance.WriteLog($"Pedido de Cierre detectado...\n", LogType.t_info);
+                    }
+
+                    Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
+                }
+                catch (Exception e)
+                {
+                    Log.Instance.WriteLog($" Estado del hilo: {mainProcess.Status} - Error en el loop del controlador.\n\t  Excepción: {e.Message}\n", LogType.t_error);
+                }
+            }
         }
 
+        /// <summary>
+        /// Metodo principal. Da inicio a la interacción con el controlador FUSION.
+        /// </summary>
+        /// <param name="token"></param>
         private static void FusionProcess(CancellationToken token)
         {
             Log.Instance.WriteLog($"Nuevo proceso principal iniciado: {mainProcess.Id} {mainProcess.Status}.\n", LogType.t_info);
 
-            Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
-            Instance.CheckConexion(0);
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    bool cierreDetectado = false;
+
+                    while (!cierreDetectado && !token.IsCancellationRequested)
+                    {
+                        lastActivityTime = DateTime.UtcNow;  // Indica actividad
+
+                        Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
+                        Instance.CheckConexion(0);
+
+                        cierreDetectado = ConnectorSQLite.Instance.ExecuteStateQuery($"SELECT hacerCierre FROM cierreBandera LIMIT 1");
+                    }
+
+                    if (cierreDetectado)
+                    {
+                        Log.Instance.WriteLog($"Pedido de Cierre detectado...\n", LogType.t_info);
+                    }
+
+                    Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
+                }
+                catch (Exception e)
+                {
+                    Log.Instance.WriteLog($" Estado del hilo: {mainProcess.Status} - Error en el loop del controlador.\n\t  Excepción: {e.Message}\n", LogType.t_error);
+                }
+            }
         }
 
-        public static void StopProcess()
+        public void StopProcess()
         {
             cancellationTokenSource.Cancel();
+            tokenSource.Cancel();
         }
 
         /// <summary>
@@ -165,9 +245,9 @@ namespace CDS
             {
                 while (!tokenSource.Token.IsCancellationRequested)
                 {
-
-                    // Suponiendo que actualizas `lastRunTime` en cada iteración del bucle principal
-                    if ((DateTime.UtcNow - lastActivityTime) > timeout)
+                    // Suponiendo que actualizas `lastActivityTime` en cada iteración del bucle principal
+                    TimeSpan timeDifference = DateTime.UtcNow - lastActivityTime;
+                    if (timeDifference > timeout)
                     {
                         // Log de que el hilo principal parece haberse detenido
                         Log.Instance.WriteLog("Advertencia: El hilo principal ha dejado de responder.\n", LogType.t_error);
@@ -180,7 +260,10 @@ namespace CDS
                         _ = CheckController(ControllerType);
                     }
 
-                    await Task.Delay(1000); // Check interval
+                    Log.Instance.WriteLog($"\n\tTiempo del proceso principal: {timeDifference}" +
+                                          $"\n\tTiempo de humbral maximo: {MAX_TIMER}", LogType.t_debug);
+
+                    await Task.Delay(1000 * TimerProcess); // Check interval
                 }
             });
         }

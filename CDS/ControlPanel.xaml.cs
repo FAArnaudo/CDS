@@ -108,7 +108,7 @@ namespace CDS
             // Verificar la respuesta del usuario
             if (result == MessageBoxResult.Yes)
             {
-                //Controlador.StopProcess();
+                PumpController.Instance.StopProcess();
                 notifyIcon.Dispose();
                 base.OnClosed(e);
                 Close();
