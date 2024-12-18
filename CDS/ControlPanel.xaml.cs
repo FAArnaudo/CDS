@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -187,7 +188,7 @@ namespace CDS
         {
             notifyIcon = new NotifyIcon
             {
-                Icon = new Icon("LogoSurtidor.ico"),
+                Icon = new Icon(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "Images", "LogoSurtidor.ico")),
                 Visible = false,
                 Text = "Controlador De Surtidores"
             };

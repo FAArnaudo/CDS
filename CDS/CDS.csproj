@@ -167,7 +167,9 @@
   <ItemGroup />
   <ItemGroup>
     <Resource Include="Images\Data.ico" />
-    <Resource Include="Images\LogoSurtidor.ico" />
+    <Resource Include="Images\LogoSurtidor.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

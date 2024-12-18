@@ -72,8 +72,7 @@ namespace CDS
             }
             catch (Exception ex)
             {
-                Log.Instance.WriteLog($"Error al crear la base de datos: {ex.Message}", LogType.t_error);
-                return false;
+                throw new Exception($"Error al crear la base de datos: {ex.Message}");
             }
         }
 

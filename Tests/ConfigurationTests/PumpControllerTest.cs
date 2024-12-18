@@ -55,15 +55,10 @@ namespace ConfigurationTests
             // Arrange
             PumpController controller = PumpController.Instance;
 
-            Data data = new Data
-            {
-                Controller = "CEM-44"
-            };
-
-            ControlPanel controlPanel = new ControlPanel();
+            Data data = new Data { };
 
             // Act
-            bool actual = controller.Init(data, controlPanel);
+            bool actual = controller.Init(data, new ControlPanel());
 
             // Assert
             Assert.IsFalse(actual);

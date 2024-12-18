@@ -14,7 +14,7 @@ namespace CDS
         private static readonly CancellationTokenSource tokenSource = new CancellationTokenSource();        // Tocken de control de procesos asincronicos
         private static Task mainProcess = null;                 // Hilo para manejar el proceso principal en paralelo al resto de la ejecución.
         private static DateTime lastActivityTime;               // Variable que almacena el DateTime que almacena la hora actual
-        private static readonly int MAX_TIMER = 600;            // Humbral maximo de tiempo sin procesar (10 minutos)
+        private static readonly int MAX_TIMER_MIN = 5;          // Humbral maximo de tiempo sin procesar (10 minutos)
 
         private PumpController() { }
 
@@ -36,7 +36,6 @@ namespace CDS
 
         public bool Init(Data data, ControlPanel controlPanel)
         {
-            bool isInitOk = false;
             try
             {
                 TimerProcess = Convert.ToInt32(data.Timer);
@@ -55,9 +54,9 @@ namespace CDS
                 {
                     ControllerType = data.Controller;
 
-                    if (CheckController(ControllerType))
+                    if (!CheckController(ControllerType))
                     {
-                        isInitOk = true;
+                        return false;
                     }
                 }
                 // Si el controlador fue asignado y se cambia por uno diferente, se inicia el proceso nuevo
@@ -67,37 +66,34 @@ namespace CDS
 
                     cancellationTokenSource.Cancel();
 
-                    Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
-
-                    cancellationTokenSource = new CancellationTokenSource();
-
-                    if (CheckController(ControllerType))
+                    if (!CheckController(ControllerType))
                     {
-                        isInitOk = true;
+                        return false;
                     }
                 }
-                else
-                {
-                    isInitOk = true;
-                }
+
+                return true;
             }
             catch (ArgumentNullException e)
             {
                 Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
-                isInitOk = false;
+                return false;
             }
             catch (NullReferenceException e)
             {
                 Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
-                isInitOk = false;
+                return false;
             }
             catch (FormatException e)
             {
                 Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
-                isInitOk = false;
+                return false;
             }
-
-            return isInitOk;
+            catch (Exception e)
+            {
+                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
+                return false;
+            }
         }
 
         /// <summary>
@@ -119,6 +115,7 @@ namespace CDS
                         lastActivityTime = DateTime.UtcNow;  // Indica actividad
 
                         Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
+
                         Instance.CheckConexion(1);
 
                         cierreDetectado = ConnectorSQLite.Instance.ExecuteStateQuery($"SELECT hacerCierre FROM cierreBandera LIMIT 1");
@@ -157,6 +154,7 @@ namespace CDS
                         lastActivityTime = DateTime.UtcNow;  // Indica actividad
 
                         Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
+
                         Instance.CheckConexion(0);
 
                         cierreDetectado = ConnectorSQLite.Instance.ExecuteStateQuery($"SELECT hacerCierre FROM cierreBandera LIMIT 1");
@@ -188,6 +186,10 @@ namespace CDS
         /// <param name="controller"></param>
         private static bool CheckController(string controller)
         {
+            Thread.Sleep(2000 * TimerProcess);          // Timer in seconds
+
+            cancellationTokenSource = new CancellationTokenSource();
+
             switch (controller)
             {
                 case "CEM-44":
@@ -204,7 +206,8 @@ namespace CDS
             _ = tokenSource.Token;
 
             // Inicia el watchdog con un tiempo límite en segundos
-            StartWatchdog(tokenSource, TimeSpan.FromSeconds(MAX_TIMER));
+            StartWatchdog(tokenSource, TimeSpan.FromMinutes(MAX_TIMER_MIN));
+
             return true;
         }
 
@@ -243,6 +246,8 @@ namespace CDS
         {
             _ = Task.Run(async () =>
             {
+                await Task.Delay(1000 * TimerProcess); // Check interval
+
                 while (!tokenSource.Token.IsCancellationRequested)
                 {
                     // Suponiendo que actualizas `lastActivityTime` en cada iteración del bucle principal
@@ -252,6 +257,9 @@ namespace CDS
                         // Log de que el hilo principal parece haberse detenido
                         Log.Instance.WriteLog("Advertencia: El hilo principal ha dejado de responder.\n", LogType.t_error);
 
+                        Log.Instance.WriteLog($"\n\tTiempo del proceso principal: {timeDifference}" +
+                                              $"\n\tTiempo de humbral maximo: {MAX_TIMER_MIN}", LogType.t_debug);
+
                         // Liberar el tocken del MainProcess
                         cancellationTokenSource.Cancel();
                         // Reiniciar el proceso principal con un nuevo token
@@ -259,11 +267,6 @@ namespace CDS
                         mainProcess = null;
                         _ = CheckController(ControllerType);
                     }
-
-                    Log.Instance.WriteLog($"\n\tTiempo del proceso principal: {timeDifference}" +
-                                          $"\n\tTiempo de humbral maximo: {MAX_TIMER}", LogType.t_debug);
-
-                    await Task.Delay(1000 * TimerProcess); // Check interval
                 }
             });
         }
