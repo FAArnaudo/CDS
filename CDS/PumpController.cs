@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,12 +6,15 @@ namespace CDS
 {
     public class PumpController
     {
-        private static PumpController instance;         // Instancia Singleton
-        private int TimerProcess { get; set; }          // Tiempo de espera entre cada procesamiento en segundos.
-        private string ControllerType { get; set; }     // Tipo de controlador seleccionado
-        private ControlPanel ControlPanel { get; set; } // Panel de Control para configurar el label de estado
-        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-        private Task mainProcess = null;     // Hilo para manejar el proceso principal en paralelo al resto de la ejecución.
+        private static PumpController instance;                 // Instancia Singleton
+        private static int TimerProcess { get; set; }           // Tiempo de espera entre cada procesamiento en segundos.
+        private static string ControllerType { get; set; }      // Tipo de controlador seleccionado
+        private ControlPanel ControlPanel { get; set; }         // Panel de Control para configurar el label de estado
+        private static CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();     // Tocken de control de procesos asincronicos
+        private static readonly CancellationTokenSource tokenSource = new CancellationTokenSource();        // Tocken de control de procesos asincronicos
+        private static Task mainProcess = null;                 // Hilo para manejar el proceso principal en paralelo al resto de la ejecución.
+        private static DateTime lastActivityTime;               // Variable que almacena el DateTime que almacena la hora actual
+        private static readonly int MAX_TIMER = 600;            // Humbral maximo de tiempo sin procesar (10 minutos)
 
         private PumpController() { }
 
@@ -42,6 +42,11 @@ namespace CDS
                 TimerProcess = Convert.ToInt32(data.Timer);
 
                 ControlPanel = controlPanel;
+
+                if (ConnectorSQLite.Instance.CreateDatabase())
+                {
+                    ConnectorSQLite.Instance.CreateTables();
+                }
 
                 if (ControllerType == null || !ControllerType.Equals(data.Controller))
                 {
@@ -76,23 +81,32 @@ namespace CDS
             return isInitOk;
         }
 
-        private void CemProcess(CancellationToken token)
+        private static void CemProcess(CancellationToken token)
         {
+            Log.Instance.WriteLog($"Nuevo proceso principal iniciado: {mainProcess.Id} {mainProcess.Status}.\n", LogType.t_info);
+
             Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
-            CheckConexion(1);
+            Instance.CheckConexion(1);
         }
 
-        private void FusionProcess(CancellationToken token)
+        private static void FusionProcess(CancellationToken token)
         {
+            Log.Instance.WriteLog($"Nuevo proceso principal iniciado: {mainProcess.Id} {mainProcess.Status}.\n", LogType.t_info);
+
             Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
-            CheckConexion(0);
+            Instance.CheckConexion(0);
+        }
+
+        public static void StopProcess()
+        {
+            cancellationTokenSource.Cancel();
         }
 
         /// <summary>
         /// Método para verificar cual es el controlador que debe asignarce.
         /// </summary>
         /// <param name="controller"></param>
-        private bool CheckController(string controller)
+        private static bool CheckController(string controller)
         {
             switch (controller)
             {
@@ -103,9 +117,14 @@ namespace CDS
                     mainProcess = Task.Run(() => FusionProcess(cancellationTokenSource.Token));
                     break;
                 default:
+                    Log.Instance.WriteLog($"No se reconoce el controlador: {controller}", LogType.t_error);
                     return false;
             }
 
+            _ = tokenSource.Token;
+
+            // Inicia el watchdog con un tiempo límite en segundos
+            StartWatchdog(tokenSource, TimeSpan.FromSeconds(MAX_TIMER));
             return true;
         }
 
@@ -132,7 +151,38 @@ namespace CDS
                 }));
             }
 
-            //_ = ConnectorSQLite.Instance.ExecuteNonQuery($"UPDATE CheckConexion SET isConnected = {conexion}, fecha = datetime('now', 'localtime') WHERE idConexion = 1");
+            _ = ConnectorSQLite.Instance.ExecuteNonQuery($"UPDATE CheckConexion SET isConnected = {conexion}, fecha = '{DateTime.Now:dd-MM-yyyy HH:mm:ss}' WHERE idConexion = 1");
+        }
+
+        /// <summary>
+        /// Metodo para monitorear el metodo principal. En caso de que no se detecte actividad se toman medidas.
+        /// </summary>
+        /// <param name="tokenSource"></param>
+        /// <param name="timeout"></param>
+        private static void StartWatchdog(CancellationTokenSource tokenSource, TimeSpan timeout)
+        {
+            _ = Task.Run(async () =>
+            {
+                while (!tokenSource.Token.IsCancellationRequested)
+                {
+
+                    // Suponiendo que actualizas `lastRunTime` en cada iteración del bucle principal
+                    if ((DateTime.UtcNow - lastActivityTime) > timeout)
+                    {
+                        // Log de que el hilo principal parece haberse detenido
+                        Log.Instance.WriteLog("Advertencia: El hilo principal ha dejado de responder.\n", LogType.t_error);
+
+                        // Liberar el tocken del MainProcess
+                        cancellationTokenSource.Cancel();
+                        // Reiniciar el proceso principal con un nuevo token
+                        cancellationTokenSource = new CancellationTokenSource();
+                        mainProcess = null;
+                        _ = CheckController(ControllerType);
+                    }
+
+                    await Task.Delay(1000); // Check interval
+                }
+            });
         }
     }
 }
