@@ -66,9 +66,10 @@ namespace CDS
                 {
                     SQLiteConnection.CreateFile(databasePath);
 
-                    return true;
+                    CreateTables();
                 }
-                return false;
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -256,11 +257,11 @@ namespace CDS
                     _ = cmd.ExecuteNonQuery();
                 }
 
-                createTableQuery = "CREATE TABLE IF NOT EXISTS CheckConexion " +
-                                  "(idConexion INTEGER PRIMARY KEY, isConnected INTEGER, fecha date DEFAULT(datetime('now', 'localtime')));" +
-                                  "\nINSERT INTO CheckConexion (idConexion, isConnected)" +
+                createTableQuery = "CREATE TABLE IF NOT EXISTS CheckConnection " +
+                                  "(idConnection INTEGER PRIMARY KEY, isConnected INTEGER, fecha date DEFAULT(datetime('now', 'localtime')));" +
+                                  "\nINSERT INTO CheckConnection (idConnection, isConnected)" +
                                   "\nSELECT 1, 0 " +
-                                  "\nWHERE NOT EXISTS (SELECT 1 FROM CheckConexion WHERE idConexion = 1)";
+                                  "\nWHERE NOT EXISTS (SELECT 1 FROM CheckConnection WHERE idConnection = 1)";
 
                 using (SQLiteCommand cmd = new SQLiteCommand(createTableQuery, connection))
                 {

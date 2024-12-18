@@ -61,20 +61,18 @@ namespace ConfigurationTests
         }
 
         [TestMethod]
-        public void CreateDatabase_ReturnFalse_WhenItAlreadyExist()
+        public void CreateDatabase_ReturnTrue_WhenItAlreadyExist()
         {
             // Arrange
             ConnectorSQLite connector = ConnectorSQLite.Instance;
 
             _ = connector.CreateDatabase();
 
-            bool expected = false;
-
             // Act
             bool actual = connector.CreateDatabase();
 
             // Assert
-            Assert.AreEqual(expected, actual);
+            Assert.IsTrue(actual);
         }
 
         [TestMethod]
@@ -228,17 +226,17 @@ namespace ConfigurationTests
             _ = connector.CreateDatabase();
 
             // Crear la tabla si no existe
-            string createTableQuery = "CREATE TABLE IF NOT EXISTS CheckConexion (" +
-                                      "idConexion INTEGER PRIMARY KEY, " +
+            string createTableQuery = "CREATE TABLE IF NOT EXISTS CheckConnection (" +
+                                      "idConnection INTEGER PRIMARY KEY, " +
                                       "isConnected INTEGER, " +
                                       "fecha DATE DEFAULT(datetime('now', 'localtime')));" +
-                                      "\nINSERT OR IGNORE INTO CheckConexion (idConexion, isConnected) " +
+                                      "\nINSERT OR IGNORE INTO CheckConnection (idConnection, isConnected) " +
                                       "\nVALUES (1, 0);";
 
             _ = connector.ExecuteNonQuery(createTableQuery);
 
             // Act
-            bool actual = connector.ExecuteStateQuery("SELECT isConnected FROM CheckConexion WHERE idConexion = 1;");
+            bool actual = connector.ExecuteStateQuery("SELECT isConnected FROM CheckConnection WHERE idConnection = 1;");
 
             // Assert
             Assert.IsFalse(actual);
@@ -253,17 +251,14 @@ namespace ConfigurationTests
             _ = connector.CreateDatabase();
 
             // Crear la tabla si no existe
-            string createTableQuery = "CREATE TABLE IF NOT EXISTS CheckConexion (" +
-                                      "idConexion INTEGER PRIMARY KEY, " +
-                                      "isConnected INTEGER, " +
-                                      "fecha DATE DEFAULT(datetime('now', 'localtime')));" +
-                                      "\nINSERT OR IGNORE INTO CheckConexion (idConexion, isConnected) " +
-                                      "\nVALUES (1, 1);";
+            string createTableQuery = "UPDATE CheckConnection " +
+                                      "SET isConnected = 1 " +
+                                      "WHERE idConnection = 1";
 
             _ = connector.ExecuteNonQuery(createTableQuery);
 
             // Act
-            bool actual = connector.ExecuteStateQuery("SELECT isConnected FROM CheckConexion WHERE idConexion = 1;");
+            bool actual = connector.ExecuteStateQuery("SELECT isConnected FROM CheckConnection WHERE idConnection = 1");
 
             // Assert
             Assert.IsTrue(actual);

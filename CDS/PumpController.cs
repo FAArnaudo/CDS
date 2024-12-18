@@ -43,11 +43,7 @@ namespace CDS
                 ControlPanel = controlPanel;
 
                 // Creamos la base de datos, si no existe
-                if (ConnectorSQLite.Instance.CreateDatabase())
-                {
-                    // Creamos las tablas si no existen
-                    ConnectorSQLite.Instance.CreateTables();
-                }
+                _ = ConnectorSQLite.Instance.CreateDatabase();
 
                 // Si el controlador no fue asignado se inicia el proceso
                 if (ControllerType == null)
@@ -234,7 +230,7 @@ namespace CDS
                 }));
             }
 
-            _ = ConnectorSQLite.Instance.ExecuteNonQuery($"UPDATE CheckConexion SET isConnected = {conexion}, fecha = '{DateTime.Now:dd-MM-yyyy HH:mm:ss}' WHERE idConexion = 1");
+            _ = ConnectorSQLite.Instance.ExecuteNonQuery($"UPDATE CheckConnection SET isConnected = {conexion}, fecha = '{DateTime.Now:dd-MM-yyyy HH:mm:ss}' WHERE idConnection = 1");
         }
 
         /// <summary>
