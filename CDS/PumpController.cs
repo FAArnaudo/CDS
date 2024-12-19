@@ -10,13 +10,18 @@ namespace CDS
         private static int TimerProcess { get; set; }           // Tiempo de espera entre cada procesamiento en segundos.
         private static string ControllerType { get; set; }      // Tipo de controlador seleccionado
         private ControlPanel ControlPanel { get; set; }         // Panel de Control para configurar el label de estado
-        private static CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();     // Tocken de control de procesos asincronicos
-        private static readonly CancellationTokenSource tokenSource = new CancellationTokenSource();        // Tocken de control de procesos asincronicos
+
+        private CancellationTokenSource cancellationTokenSource;     // Tocken de control de procesos asincronicos
+        private CancellationTokenSource watchDogTockenSource;        // Tocken de control de procesos asincronicos
         private static Task mainProcess = null;                 // Hilo para manejar el proceso principal en paralelo al resto de la ejecución.
         private static DateTime lastActivityTime;               // Variable que almacena el DateTime que almacena la hora actual
         private static readonly int MAX_TIMER_MIN = 5;          // Humbral maximo de tiempo sin procesar (10 minutos)
 
-        private PumpController() { }
+        private PumpController()
+        {
+            cancellationTokenSource = new CancellationTokenSource();
+            watchDogTockenSource = new CancellationTokenSource();
+        }
 
         /// <summary>
         /// Instancia Singleton de PumpController.
@@ -34,35 +39,26 @@ namespace CDS
             }
         }
 
+        /// <summary>
+        /// Inicializa el controlador con los datos y el panel de control proporcionados.
+        /// </summary>
+        /// <param name="data">Datos necesarios para la inicialización del controlador.</param>
+        /// <param name="controlPanel">Panel de control asociado al controlador.</param>
+        /// <returns>True si la inicialización fue exitosa; false en caso contrario.</returns>
         public bool Init(Data data, ControlPanel controlPanel)
         {
             try
             {
-                TimerProcess = Convert.ToInt32(data.Timer);
+                // Inicializa los valores básicos y la base de datos
+                InitializeControllerData(data, controlPanel);
 
-                ControlPanel = controlPanel;
-
-                // Creamos la base de datos, si no existe
-                _ = ConnectorSQLite.Instance.CreateDatabase();
-
-                // Si el controlador no fue asignado se inicia el proceso
-                if (ControllerType == null)
+                // Verifica si es necesario actualizar el controlador
+                if (ControllerType == null || !ControllerType.Equals(data.Controller))
                 {
-                    ControllerType = data.Controller;
+                    cancellationTokenSource?.Cancel();
 
-                    if (!CheckController(ControllerType))
-                    {
-                        return false;
-                    }
-                }
-                // Si el controlador fue asignado y se cambia por uno diferente, se inicia el proceso nuevo
-                else if (!ControllerType.Equals(data.Controller))
-                {
-                    ControllerType = data.Controller;
-
-                    cancellationTokenSource.Cancel();
-
-                    if (!CheckController(ControllerType))
+                    // Intenta actualizar el tipo de controlador
+                    if (!UpdateControllerType(data.Controller))
                     {
                         return false;
                     }
@@ -70,26 +66,44 @@ namespace CDS
 
                 return true;
             }
-            catch (ArgumentNullException e)
-            {
-                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
-                return false;
-            }
-            catch (NullReferenceException e)
-            {
-                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
-                return false;
-            }
-            catch (FormatException e)
-            {
-                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
-                return false;
-            }
             catch (Exception e)
             {
+                // Maneja cualquier excepción y registra el error
                 Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Actualiza el tipo de controlador y verifica su validez.
+        /// </summary>
+        /// <param name="newControllerType">Nuevo tipo de controlador a configurar.</param>
+        /// <returns>True si el controlador es válido y fue configurado exitosamente; false en caso contrario.</returns>
+        private bool UpdateControllerType(string newControllerType)
+        {
+            // Verifica y actualiza el tipo de controlador
+            if (!CheckController(newControllerType))
+            {
+                return false;
+            }
+
+            ControllerType = newControllerType;
+            return true;
+        }
+
+        /// <summary>
+        /// Inicializa los datos básicos del controlador, como el temporizador, el panel de control, 
+        /// y crea la base de datos si no existe.
+        /// </summary>
+        /// <param name="data">Datos necesarios para la inicialización.</param>
+        /// <param name="controlPanel">Panel de control asociado al controlador.</param>
+        private void InitializeControllerData(Data data, ControlPanel controlPanel)
+        {
+            TimerProcess = Convert.ToInt32(data.Timer);
+            ControlPanel = controlPanel;
+
+            // Asegura que la base de datos exista
+            _ = ConnectorSQLite.Instance.CreateDatabase();
         }
 
         /// <summary>
@@ -170,39 +184,48 @@ namespace CDS
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void StopProcess()
         {
             cancellationTokenSource.Cancel();
-            tokenSource.Cancel();
+            watchDogTockenSource.Cancel();
         }
 
         /// <summary>
-        /// Método para verificar cual es el controlador que debe asignarce.
+        /// Verifica y configura el controlador según su tipo.
         /// </summary>
-        /// <param name="controller"></param>
-        private static bool CheckController(string controller)
+        /// <param name="controller">Tipo de controlador a verificar.</param>
+        /// <returns>True si el controlador es válido; false en caso contrario.</returns>
+        private bool CheckController(string controller)
         {
-            Thread.Sleep(2000 * TimerProcess);          // Timer in seconds
+            // Simula un retraso basado en el temporizador
+            Thread.Sleep(2000 * TimerProcess);
 
+            // Inicializa el token de cancelación
             cancellationTokenSource = new CancellationTokenSource();
 
             switch (controller)
             {
                 case "CEM-44":
+                    // Inicia el proceso principal para el controlador CEM-44
                     mainProcess = Task.Run(() => CemProcess(cancellationTokenSource.Token));
                     break;
                 case "FUSION":
+                    // Inicia el proceso principal para el controlador FUSION
                     mainProcess = Task.Run(() => FusionProcess(cancellationTokenSource.Token));
                     break;
                 default:
+                    // Registra un error si el tipo de controlador no es reconocido
                     Log.Instance.WriteLog($"No se reconoce el controlador: {controller}", LogType.t_error);
                     return false;
             }
 
-            _ = tokenSource.Token;
+            _ = watchDogTockenSource.Token;
 
-            // Inicia el watchdog con un tiempo límite en segundos
-            StartWatchdog(tokenSource, TimeSpan.FromMinutes(MAX_TIMER_MIN));
+            // Inicia el watchdog con un tiempo límite predefinido
+            StartWatchdog(watchDogTockenSource, TimeSpan.FromMinutes(MAX_TIMER_MIN));
 
             return true;
         }
@@ -238,7 +261,7 @@ namespace CDS
         /// </summary>
         /// <param name="tokenSource"></param>
         /// <param name="timeout"></param>
-        private static void StartWatchdog(CancellationTokenSource tokenSource, TimeSpan timeout)
+        private void StartWatchdog(CancellationTokenSource tokenSource, TimeSpan timeout)
         {
             _ = Task.Run(async () =>
             {
@@ -268,3 +291,64 @@ namespace CDS
         }
     }
 }
+
+
+/*
+ public bool Init(Data data, ControlPanel controlPanel)
+        {
+            try
+            {
+                TimerProcess = Convert.ToInt32(data.Timer);
+
+                ControlPanel = controlPanel;
+
+                // Creamos la base de datos, si no existe
+                _ = ConnectorSQLite.Instance.CreateDatabase();
+
+                // Si el controlador no fue asignado se inicia el proceso
+                if (ControllerType == null)
+                {
+                    ControllerType = data.Controller;
+
+                    if (!CheckController(ControllerType))
+                    {
+                        return false;
+                    }
+                }
+                // Si el controlador fue asignado y se cambia por uno diferente, se inicia el proceso nuevo
+                else if (!ControllerType.Equals(data.Controller))
+                {
+                    ControllerType = data.Controller;
+
+                    cancellationTokenSource.Cancel();
+
+                    if (!CheckController(ControllerType))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch (ArgumentNullException e)
+            {
+                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
+                return false;
+            }
+            catch (NullReferenceException e)
+            {
+                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
+                return false;
+            }
+            catch (FormatException e)
+            {
+                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
+                return false;
+            }
+            catch (Exception e)
+            {
+                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
+                return false;
+            }
+        } 
+ */

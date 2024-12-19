@@ -88,6 +88,7 @@
     <Compile Include="Views\TanquesViews.xaml.cs">
       <DependentUpon>TanquesViews.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WatchDog.cs" />
     <Page Include="ControlPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
