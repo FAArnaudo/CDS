@@ -7,15 +7,15 @@ namespace CDS
     public class PumpController
     {
         private static PumpController instance;                 // Instancia Singleton
-        private static int TimerProcess { get; set; }           // Tiempo de espera entre cada procesamiento en segundos.
-        private static string ControllerType { get; set; }      // Tipo de controlador seleccionado
+        private int TimerProcess { get; set; }                  // Tiempo de espera entre cada procesamiento en segundos.
+        private string ControllerType { get; set; }             // Tipo de controlador seleccionado
         private ControlPanel ControlPanel { get; set; }         // Panel de Control para configurar el label de estado
 
-        private CancellationTokenSource cancellationTokenSource;     // Tocken de control de procesos asincronicos
-        private CancellationTokenSource watchDogTockenSource;        // Tocken de control de procesos asincronicos
-        private static Task mainProcess = null;                 // Hilo para manejar el proceso principal en paralelo al resto de la ejecución.
-        private static DateTime lastActivityTime;               // Variable que almacena el DateTime que almacena la hora actual
-        private static readonly int MAX_TIMER_MIN = 5;          // Humbral maximo de tiempo sin procesar (10 minutos)
+        private CancellationTokenSource cancellationTokenSource;// Tocken de control de procesos asincronicos
+        private CancellationTokenSource watchDogTockenSource;   // Tocken de control de procesos asincronicos
+        private Task mainProcess = null;                 // Hilo para manejar el proceso principal en paralelo al resto de la ejecución.
+        private DateTime lastActivityTime;               // Variable que almacena el DateTime que almacena la hora actual
+        private readonly int MAX_TIMER_MIN = 5;          // Humbral maximo de tiempo sin procesar (10 minutos)
 
         private PumpController()
         {
@@ -50,25 +50,17 @@ namespace CDS
             try
             {
                 // Inicializa los valores básicos y la base de datos
-                InitializeControllerData(data, controlPanel);
+                TimerProcess = Convert.ToInt32(data.Timer);
 
-                // Verifica si es necesario actualizar el controlador
-                if (ControllerType == null || !ControllerType.Equals(data.Controller))
-                {
-                    cancellationTokenSource?.Cancel();
+                ControlPanel = controlPanel;
 
-                    // Intenta actualizar el tipo de controlador
-                    if (!UpdateControllerType(data.Controller))
-                    {
-                        return false;
-                    }
-                }
+                // Asegura que la base de datos exista
+                _ = ConnectorSQLite.Instance.CreateDatabase();
 
-                return true;
+                return UpdateControllerType(data.Controller);
             }
-            catch (Exception e)
+            catch (Exception e) when (e is ArgumentNullException || e is NullReferenceException || e is FormatException)
             {
-                // Maneja cualquier excepción y registra el error
                 Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
                 return false;
             }
@@ -77,40 +69,68 @@ namespace CDS
         /// <summary>
         /// Actualiza el tipo de controlador y verifica su validez.
         /// </summary>
-        /// <param name="newControllerType">Nuevo tipo de controlador a configurar.</param>
+        /// <param name="data">Nuevo tipo de controlador a configurar.</param>
         /// <returns>True si el controlador es válido y fue configurado exitosamente; false en caso contrario.</returns>
-        private bool UpdateControllerType(string newControllerType)
+        public bool UpdateControllerType(string controller)
         {
-            // Verifica y actualiza el tipo de controlador
-            if (!CheckController(newControllerType))
+            if (ControllerType == null || !ControllerType.Equals(controller))
             {
-                return false;
+                cancellationTokenSource?.Cancel();
+
+                // Verifica y actualiza el tipo de controlador
+                if (!CheckController(controller))
+                {
+                    return false;
+                }
             }
 
-            ControllerType = newControllerType;
+            ControllerType = controller;
+
             return true;
         }
 
         /// <summary>
-        /// Inicializa los datos básicos del controlador, como el temporizador, el panel de control, 
-        /// y crea la base de datos si no existe.
+        /// Verifica y configura el controlador según su tipo.
         /// </summary>
-        /// <param name="data">Datos necesarios para la inicialización.</param>
-        /// <param name="controlPanel">Panel de control asociado al controlador.</param>
-        private void InitializeControllerData(Data data, ControlPanel controlPanel)
+        /// <param name="controller">Tipo de controlador a verificar.</param>
+        /// <returns>True si el controlador es válido; false en caso contrario.</returns>
+        private bool CheckController(string controller)
         {
-            TimerProcess = Convert.ToInt32(data.Timer);
-            ControlPanel = controlPanel;
+            // Simula un retraso basado en el temporizador
+            Thread.Sleep(1500 * TimerProcess);
 
-            // Asegura que la base de datos exista
-            _ = ConnectorSQLite.Instance.CreateDatabase();
+            // Inicializa el token de cancelación
+            cancellationTokenSource = new CancellationTokenSource();
+
+            switch (controller)
+            {
+                case "CEM-44":
+                    // Inicia el proceso principal para el controlador CEM-44
+                    mainProcess = Task.Run(() => CemProcess(cancellationTokenSource.Token));
+                    break;
+                case "FUSION":
+                    // Inicia el proceso principal para el controlador FUSION
+                    mainProcess = Task.Run(() => FusionProcess(cancellationTokenSource.Token));
+                    break;
+                default:
+                    // Registra un error si el tipo de controlador no es reconocido
+                    Log.Instance.WriteLog($"No se reconoce el controlador: {controller}", LogType.t_error);
+                    return false;
+            }
+
+            _ = watchDogTockenSource.Token;
+
+            // Inicia el watchdog con un tiempo límite predefinido
+            StartWatchdog(watchDogTockenSource, TimeSpan.FromMinutes(MAX_TIMER_MIN));
+
+            return true;
         }
 
         /// <summary>
         /// Metodo principal. Da inicio a la interacción con el controlador CEM-44.
         /// </summary>
         /// <param name="token"></param>
-        private static void CemProcess(CancellationToken token)
+        private void CemProcess(CancellationToken token)
         {
             Log.Instance.WriteLog($"Nuevo proceso principal iniciado: {mainProcess.Id} {mainProcess.Status}.\n", LogType.t_info);
 
@@ -149,7 +169,7 @@ namespace CDS
         /// Metodo principal. Da inicio a la interacción con el controlador FUSION.
         /// </summary>
         /// <param name="token"></param>
-        private static void FusionProcess(CancellationToken token)
+        private void FusionProcess(CancellationToken token)
         {
             Log.Instance.WriteLog($"Nuevo proceso principal iniciado: {mainProcess.Id} {mainProcess.Status}.\n", LogType.t_info);
 
@@ -161,9 +181,9 @@ namespace CDS
 
                     while (!cierreDetectado && !token.IsCancellationRequested)
                     {
-                        lastActivityTime = DateTime.UtcNow;  // Indica actividad
+                        lastActivityTime = DateTime.UtcNow;     // Indica actividad
 
-                        Thread.Sleep(1000 * TimerProcess);          // Timer in seconds
+                        Thread.Sleep(1000 * TimerProcess);      // Timer in seconds
 
                         Instance.CheckConexion(0);
 
@@ -191,43 +211,6 @@ namespace CDS
         {
             cancellationTokenSource.Cancel();
             watchDogTockenSource.Cancel();
-        }
-
-        /// <summary>
-        /// Verifica y configura el controlador según su tipo.
-        /// </summary>
-        /// <param name="controller">Tipo de controlador a verificar.</param>
-        /// <returns>True si el controlador es válido; false en caso contrario.</returns>
-        private bool CheckController(string controller)
-        {
-            // Simula un retraso basado en el temporizador
-            Thread.Sleep(2000 * TimerProcess);
-
-            // Inicializa el token de cancelación
-            cancellationTokenSource = new CancellationTokenSource();
-
-            switch (controller)
-            {
-                case "CEM-44":
-                    // Inicia el proceso principal para el controlador CEM-44
-                    mainProcess = Task.Run(() => CemProcess(cancellationTokenSource.Token));
-                    break;
-                case "FUSION":
-                    // Inicia el proceso principal para el controlador FUSION
-                    mainProcess = Task.Run(() => FusionProcess(cancellationTokenSource.Token));
-                    break;
-                default:
-                    // Registra un error si el tipo de controlador no es reconocido
-                    Log.Instance.WriteLog($"No se reconoce el controlador: {controller}", LogType.t_error);
-                    return false;
-            }
-
-            _ = watchDogTockenSource.Token;
-
-            // Inicia el watchdog con un tiempo límite predefinido
-            StartWatchdog(watchDogTockenSource, TimeSpan.FromMinutes(MAX_TIMER_MIN));
-
-            return true;
         }
 
         /// <summary>
@@ -291,64 +274,3 @@ namespace CDS
         }
     }
 }
-
-
-/*
- public bool Init(Data data, ControlPanel controlPanel)
-        {
-            try
-            {
-                TimerProcess = Convert.ToInt32(data.Timer);
-
-                ControlPanel = controlPanel;
-
-                // Creamos la base de datos, si no existe
-                _ = ConnectorSQLite.Instance.CreateDatabase();
-
-                // Si el controlador no fue asignado se inicia el proceso
-                if (ControllerType == null)
-                {
-                    ControllerType = data.Controller;
-
-                    if (!CheckController(ControllerType))
-                    {
-                        return false;
-                    }
-                }
-                // Si el controlador fue asignado y se cambia por uno diferente, se inicia el proceso nuevo
-                else if (!ControllerType.Equals(data.Controller))
-                {
-                    ControllerType = data.Controller;
-
-                    cancellationTokenSource.Cancel();
-
-                    if (!CheckController(ControllerType))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-            catch (ArgumentNullException e)
-            {
-                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
-                return false;
-            }
-            catch (NullReferenceException e)
-            {
-                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
-                return false;
-            }
-            catch (FormatException e)
-            {
-                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
-                return false;
-            }
-            catch (Exception e)
-            {
-                Log.Instance.WriteLog($"Error en el metodo PumpController.Init. Exception: {e.Message}", LogType.t_error);
-                return false;
-            }
-        } 
- */

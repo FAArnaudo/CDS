@@ -11,8 +11,9 @@ namespace ConfigurationTests
     [TestClass]
     public class PumpControllerTest
     {
+
         [TestMethod]
-        public void Initi_ReturnTrue()
+        public void UpdateControllerType_ReturnTrue()
         {
             // Arrange
             PumpController controller = PumpController.Instance;
@@ -24,44 +25,52 @@ namespace ConfigurationTests
                 RutaProyNuevo = @"C:\Sistema\PROY_NUEVO"
             };
 
-            _ = Configuration.SaveConfiguration(data);
-
-            ControlPanel controlPanel = new ControlPanel();
-
             // Act
-            bool actual = controller.Init(data, controlPanel);
+            bool actual = controller.UpdateControllerType(data.Controller);
 
             // Assert
             Assert.IsTrue(actual);
         }
 
         [TestMethod]
-        public void Init_NullArgument()
+        public void UpdateControllerType_SameController_ReturnTrue()
         {
             // Arrange
             PumpController controller = PumpController.Instance;
 
-            Data data = null;
+            Data data = new Data
+            {
+                Controller = "CEM-44",
+                Timer = "8",
+                RutaProyNuevo = @"C:\Sistema\PROY_NUEVO"
+            };
 
-            ControlPanel controlPanel = null;
+            _ = controller.UpdateControllerType(data.Controller);
 
             // Act
-            bool actual = controller.Init(data, controlPanel);
+            bool actual = controller.UpdateControllerType(data.Controller);
 
             // Assert
-            Assert.IsFalse(actual);
+            Assert.IsTrue(actual);
         }
 
         [TestMethod]
-        public void Init_NullReference()
+        public void UpdateControllerType_NoController_ReturnFalse()
         {
             // Arrange
             PumpController controller = PumpController.Instance;
 
-            Data data = new Data { };
+            Data data = new Data
+            {
+                Controller = "CEM-44",
+                Timer = "8",
+                RutaProyNuevo = @"C:\Sistema\PROY_NUEVO"
+            };
+
+            _ = controller.UpdateControllerType(data.Controller);
 
             // Act
-            bool actual = controller.Init(data, new ControlPanel());
+            bool actual = controller.UpdateControllerType("MIDEX");
 
             // Assert
             Assert.IsFalse(actual);

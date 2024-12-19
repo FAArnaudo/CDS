@@ -158,7 +158,7 @@ namespace CDS.Views
                                                      $"\n\tBandera:\t\t{estacion.Content}" +
                                                      $"\n\tControlador:\t{controlador.Content}" +
                                                      $"\n\tIP Controlador:\t{TextBoxIpControlador.Text}" +
-                                                     $"\n\tProtocolo:\t{protocol}" +
+                                                     $"\n\tProtocolo:\t\t{protocol}" +
                                                      $"\n\tTimer de proceso:\t{TextBoxTimer.Text}\n" +
                                                      $"\n¿Los datos son correctos?", "Confirmación",
                                                           MessageBoxButton.YesNo,
