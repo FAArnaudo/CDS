@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -63,6 +64,17 @@ namespace CDS
         private void Init()
         {
             ConfigureExpander(Configuration.GetConfiguration().StationFlag, Configuration.GetConfiguration().Controller);
+
+            if (PumpController.Instance.Init(Configuration.GetConfiguration(), this))
+            {
+                _ = MessageBox.Show("Datos cargados correctamente, verifique el estado del controlador.");
+            }
+            else
+            {
+                _ = MessageBox.Show("Error al cargar los parametros.\n" +
+                                    "Por favor, revise e intente nuevamente.");
+                Log.Instance.WriteLog("No fue posible iniciar", LogType.t_error);
+            }
         }
 
         /// <summary>
@@ -97,7 +109,7 @@ namespace CDS
             // Verificar la respuesta del usuario
             if (result == MessageBoxResult.Yes)
             {
-                //Controlador.StopProcess();
+                PumpController.Instance.StopProcess();
                 notifyIcon.Dispose();
                 base.OnClosed(e);
                 Close();
@@ -176,7 +188,7 @@ namespace CDS
         {
             notifyIcon = new NotifyIcon
             {
-                Icon = new Icon("LogoSurtidor.ico"),
+                Icon = new Icon(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "Images", "LogoSurtidor.ico")),
                 Visible = false,
                 Text = "Controlador De Surtidores"
             };

@@ -182,7 +182,7 @@ namespace CDS.Views
 
                     if (Configuration.SaveConfiguration(data))
                     {
-                        Thread.Sleep(1000);
+                        Thread.Sleep(500);
                         _ = MessageBox.Show($"Configuracion guardada correctamente.");
                         Close();
                     }

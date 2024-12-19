@@ -24,6 +24,7 @@ namespace CDS
                     RazonSocial = streamReader.ReadLine().Trim(),
                     RutaProyNuevo = streamReader.ReadLine().Trim(),
                     StationFlag = streamReader.ReadLine().Trim(),
+                    Controller = streamReader.ReadLine().Trim(),
                     IP = streamReader.ReadLine().Trim(),
                     Protocol = streamReader.ReadLine().Trim(),
                     Timer = streamReader.ReadLine().Trim(),
@@ -47,14 +48,15 @@ namespace CDS
                 //Crea el archivo config.ini
                 using (StreamWriter outputFile = new StreamWriter(configFile, false))
                 {
-                    outputFile.WriteLine(data.RazonSocial.Trim());                    //1°   Razon Social
-                    outputFile.WriteLine(data.RutaProyNuevo.Trim());                  //2°   Path
-                    outputFile.WriteLine(data.StationFlag.Trim());                    //3°   Flag Station
-                    outputFile.WriteLine(data.IP.Trim());                             //4°   IP
-                    outputFile.WriteLine(data.Protocol.Trim());                       //5°   Protocol
-                    outputFile.WriteLine(data.Timer.Trim());                          //6°   Timer Process
-                    outputFile.WriteLine(data.Modo);                                  //7°   Mood
-                    outputFile.WriteLine(data.Logger);                                //8°   Logger
+                    outputFile.WriteLine(data.RazonSocial.Trim());                      //1°   Razon Social
+                    outputFile.WriteLine(data.RutaProyNuevo.Trim());                    //2°   Path
+                    outputFile.WriteLine(data.StationFlag.Trim());                      //3°   Flag Station
+                    outputFile.WriteLine(data.Controller.Trim());                       //4°   Tipo de Controlador
+                    outputFile.WriteLine(data.IP.Trim());                               //5°   IP
+                    outputFile.WriteLine(data.Protocol.Trim());                         //6°   Protocol
+                    outputFile.WriteLine(data.Timer.Trim());                            //7°   Timer Process
+                    outputFile.WriteLine(data.Modo);                                    //8°   Mood
+                    outputFile.WriteLine(data.Logger);                                  //9°   Logger
                 }
             }
             catch (Exception e)
